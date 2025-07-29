@@ -6,10 +6,8 @@ import AppLayout from './components/AppLayout';
 import LoginPage from './pages/LoginPage';
 import StationPage from './pages/StationPage';
 import RoverPage from './pages/RoverPage';
-import DashboardPage from './pages/DashboardPage'; // <-- IMPORT TRANG THẬT
-
-// Các trang placeholder còn lại
-const SettingsPage = () => <h1>Settings</h1>;
+import DashboardPage from './pages/DashboardPage';
+import SettingsPage from './pages/SettingsPage'; // <-- IMPORT TRANG THẬT
 
 function App() {
   return (
@@ -23,11 +21,10 @@ function App() {
           </PrivateRoute>
         }
       >
-        {/* Các route con này sẽ được hiển thị bên trong AppLayout */}
-        <Route index element={<DashboardPage />} /> {/* <-- SỬ DỤNG Ở ĐÂY */}
+        <Route index element={<DashboardPage />} />
         <Route path="stations" element={<StationPage />} />
         <Route path="rovers" element={<RoverPage />} />
-        <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings" element={<SettingsPage />} /> {/* <-- SỬ DỤNG Ở ĐÂY */}
       </Route>
     </Routes>
   );

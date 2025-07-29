@@ -4,6 +4,7 @@ import apiClient from './api';
 export const userService = {
   getAllUsers: async () => {
     try {
+      // Giả định bạn có endpoint này từ user.routes.js
       const response = await apiClient.get('/users');
       return response.data.data;
     } catch (error) {
