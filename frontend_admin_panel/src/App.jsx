@@ -5,10 +5,10 @@ import PrivateRoute from './components/PrivateRoute';
 import AppLayout from './components/AppLayout';
 import LoginPage from './pages/LoginPage';
 import StationPage from './pages/StationPage';
+import RoverPage from './pages/RoverPage';
+import DashboardPage from './pages/DashboardPage'; // <-- IMPORT TRANG THẬT
 
-// Các trang placeholder
-const DashboardPage = () => <h1>Dashboard</h1>;
-const RoverPage = () => <h1>Rover Management</h1>;
+// Các trang placeholder còn lại
 const SettingsPage = () => <h1>Settings</h1>;
 
 function App() {
@@ -24,7 +24,7 @@ function App() {
         }
       >
         {/* Các route con này sẽ được hiển thị bên trong AppLayout */}
-        <Route index element={<DashboardPage />} />
+        <Route index element={<DashboardPage />} /> {/* <-- SỬ DỤNG Ở ĐÂY */}
         <Route path="stations" element={<StationPage />} />
         <Route path="rovers" element={<RoverPage />} />
         <Route path="settings" element={<SettingsPage />} />
