@@ -16,7 +16,7 @@ const { Title } = Typography;
 
 const menuItems = [
   { key: '/', icon: <DashboardOutlined />, label: <Link to="/">Dashboard</Link> },
-  { key: '/stations', icon: <RadarChartOutlined />, label: <Link to="/stations">Stations Management</Link> },
+  { key: '/stations', icon: <RadarChartOutlined />, label: <Link to="/stations">Station Management</Link> },
   { key: '/rovers', icon: <RocketOutlined />, label: <Link to="/rovers">Rover Management</Link> },
   { key: '/settings', icon: <SettingOutlined />, label: <Link to="/settings">Setting</Link> },
 ];

@@ -71,17 +71,5 @@ export const stationService = {
     }
   },
 
-  // ======================= THÊM HÀM MỚI =======================
-  getStationStats: async (id) => {
-    try {
-        const response = await apiClient.get(`/stations/${id}/stats`);
-        // Trả về data bên trong, chứa { connected: boolean, ... }
-        return response.data.data; 
-    } catch (error) {
-        // Không ném lỗi ra ngoài để không làm crash luồng chính
-        console.error(`Không thể lấy stats cho trạm #${id}`, error);
-        return { connected: false, error: true }; // Trả về trạng thái mặc định khi lỗi
-    }
-  }
-  // =============================================================
+  // Hàm getStationStats đã được xóa vì không còn cần thiết.
 };
