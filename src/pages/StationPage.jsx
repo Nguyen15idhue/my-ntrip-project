@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Table, Typography, Tag, message, Button, Space, Popconfirm, Input, Tooltip } from 'antd';
 import { PlusOutlined, ReloadOutlined, PlayCircleOutlined, PauseCircleOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { stationService } from '../services/station.service';
-import StationForm from '../components/StationForm'; // Giả sử component này không đổi
+import StationForm from '../components/StationForm';
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -33,7 +33,6 @@ const StationPage = () => {
     fetchStations();
   }, [fetchStations]);
 
-  // Các hàm xử lý modal và hành động đơn lẻ (giữ nguyên)
   const handleAddNew = () => { setEditingStation(null); setIsModalOpen(true); };
   const handleEdit = (record) => { setEditingStation(record); setIsModalOpen(true); };
   const handleCancelModal = () => setIsModalOpen(false);
@@ -67,11 +66,8 @@ const StationPage = () => {
     } catch(error) { message.error(error.message); setLoading(false); }
   };
   
-  // ====================== PHIÊN BẢN SỬA LỖI CUỐI CÙNG ======================
-  // Hàm này giờ sẽ được gọi bởi onConfirm của Popconfirm
   const handleBulkAction = async (action) => {
     if (!selectedRowKeys || selectedRowKeys.length === 0) {
-      // Dù nút bị disabled, vẫn nên có kiểm tra này để an toàn
       message.warning('Vui lòng chọn ít nhất một trạm.');
       return;
     }
@@ -87,15 +83,14 @@ const StationPage = () => {
       message.error(error.message);
     } finally {
       setSelectedRowKeys([]);
-      // Đợi một chút rồi tải lại dữ liệu để đảm bảo trạng thái đã được cập nhật
       setTimeout(() => {
         fetchStations(); 
       }, 1500);
     }
   };
-  // =======================================================================
 
   const filteredStations = useMemo(() => stations.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase())), [searchTerm, stations]);
+  
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 80, sorter: (a, b) => a.id - b.id },
     { title: 'Tên trạm', dataIndex: 'name', key: 'name', sorter: (a, b) => a.name.localeCompare(b.name) },
@@ -122,8 +117,18 @@ const StationPage = () => {
             </Tooltip>
           </Popconfirm>
           <Tooltip title="Chỉnh sửa"><Button shape="circle" icon={<EditOutlined />} onClick={() => handleEdit(record)} /></Tooltip>
-          <Popconfirm title="Xóa trạm?" description="Hành động này không thể hoàn tác." onConfirm={() => handleDelete(record.id)} okText="Xóa" cancelText="Hủy">
-            <Tooltip title="Xóa"><Button shape="circle" danger icon={<DeleteOutlined />} /></Tooltip>
+          
+          <Popconfirm
+            title={record.status === 'active' ? 'Không thể xóa' : 'Xóa trạm?'}
+            description={record.status === 'active' ? 'Bạn phải dừng (stop) trạm trước khi xóa.' : 'Hành động này không thể hoàn tác.'}
+            onConfirm={() => handleDelete(record.id)}
+            okText="Xóa"
+            cancelText="Hủy"
+            disabled={record.status === 'active'}
+          >
+            <Tooltip title={record.status === 'active' ? 'Phải dừng trạm để xóa' : 'Xóa'}>
+              <Button shape="circle" danger icon={<DeleteOutlined />} disabled={record.status === 'active'} />
+            </Tooltip>
           </Popconfirm>
         </Space>
       ),
@@ -132,24 +137,28 @@ const StationPage = () => {
 
   const rowSelection = { selectedRowKeys, onChange: setSelectedRowKeys };
   const hasSelected = selectedRowKeys.length > 0;
+  
+  // ====================== LOGIC MỚI ĐÃ THÊM VÀO ======================
+  const isAnySelectedActive = useMemo(() => {
+    if (!hasSelected) return false;
+    const selectedStations = stations.filter(station => selectedRowKeys.includes(station.id));
+    return selectedStations.some(station => station.status === 'active');
+  }, [selectedRowKeys, stations, hasSelected]);
+  // =================================================================
 
   return (
     <>
       <Title level={2}>Quản lý Trạm (Stations)</Title>
       
-      {/* ====================== GIAO DIỆN MỚI CHO THANH CÔNG CỤ ====================== */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0', flexWrap: 'wrap', gap: '16px' }}>
         <Search placeholder="Tìm kiếm theo tên..." onChange={(e) => setSearchTerm(e.target.value)} style={{ width: 300 }} allowClear />
         <Space>
           {hasSelected && <Text type="success" strong>{selectedRowKeys.length} trạm được chọn</Text>}
           
-          {/* SỬ DỤNG POPCONFIRM CHO CÁC NÚT BULK ACTION */}
           <Popconfirm
             title={`Bạn có chắc muốn START ${selectedRowKeys.length} trạm đã chọn?`}
             onConfirm={() => handleBulkAction('start')}
-            okText="Đồng ý"
-            cancelText="Hủy"
-            disabled={!hasSelected}
+            okText="Đồng ý" cancelText="Hủy" disabled={!hasSelected}
           >
             <Button type="primary" disabled={!hasSelected}>Start</Button>
           </Popconfirm>
@@ -157,29 +166,32 @@ const StationPage = () => {
           <Popconfirm
             title={`Bạn có chắc muốn STOP ${selectedRowKeys.length} trạm đã chọn?`}
             onConfirm={() => handleBulkAction('stop')}
-            okText="Đồng ý"
-            cancelText="Hủy"
-            disabled={!hasSelected}
+            okText="Đồng ý" cancelText="Hủy" disabled={!hasSelected}
           >
             <Button disabled={!hasSelected}>Stop</Button>
           </Popconfirm>
           
+          {/* ====================== PHẦN ĐÃ SỬA ====================== */}
           <Popconfirm
-            title={`Bạn có chắc muốn XÓA ${selectedRowKeys.length} trạm đã chọn?`}
-            description="Hành động này không thể hoàn tác!"
+            title={isAnySelectedActive ? 'Không thể xóa' : `Bạn có chắc muốn XÓA ${selectedRowKeys.length} trạm đã chọn?`}
+            description={isAnySelectedActive ? 'Tồn tại trạm đang hoạt động (active) trong danh sách chọn. Vui lòng dừng tất cả trước khi xóa.' : 'Hành động này không thể hoàn tác!'}
             onConfirm={() => handleBulkAction('delete')}
             okText="Xóa"
             cancelText="Hủy"
-            disabled={!hasSelected}
+            disabled={!hasSelected || isAnySelectedActive}
           >
-            <Button type="primary" danger disabled={!hasSelected}>Delete</Button>
+            <Tooltip title={isAnySelectedActive ? 'Phải dừng tất cả trạm đã chọn để xóa' : 'Xóa các trạm đã chọn'}>
+              <Button type="primary" danger disabled={!hasSelected || isAnySelectedActive}>
+                Delete
+              </Button>
+            </Tooltip>
           </Popconfirm>
+          {/* ========================================================= */}
           
           <Button icon={<ReloadOutlined />} onClick={fetchStations}>Tải lại</Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAddNew}>Thêm mới</Button>
         </Space>
       </div>
-      {/* ============================================================================== */}
       
       <Table rowKey="id" rowSelection={rowSelection} columns={columns} dataSource={filteredStations} loading={loading} scroll={{ x: 1200 }} />
       <StationForm open={isModalOpen} onFinish={handleFinishModal} onCancel={handleCancelModal} loading={formLoading} initialValues={editingStation} />
